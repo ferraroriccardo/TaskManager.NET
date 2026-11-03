@@ -1,0 +1,72 @@
+### File di richieste HTTP: in Visual Studio / VS Code (estensione "REST Client")
+### clicca "Send Request" sopra ogni richiesta per provarla.
+
+@baseUrl = http://localhost:5080
+
+### Tutti i progetti (con conteggio task)
+GET {{baseUrl}}/api/projects
+
+### Crea un progetto
+POST {{baseUrl}}/api/projects
+Content-Type: application/json
+
+{
+  "name": "Thesis"
+}
+
+### Tutti i task di un progetto
+GET {{baseUrl}}/api/tasks?projectId=1
+
+### Solo i task "InProgress"
+GET {{baseUrl}}/api/tasks?status=InProgress
+
+### Un task specifico
+GET {{baseUrl}}/api/tasks/1
+
+### Task inesistente -> 404 ProblemDetails (GlobalExceptionHandler)
+GET {{baseUrl}}/api/tasks/9999
+
+### Crea un task -> 201 Created
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Review LINQ",
+  "description": "Where, Select, Include, GroupBy",
+  "priority": "High",
+  "dueDate": "2026-11-05T00:00:00Z",
+  "projectId": 1
+}
+
+### Task non valido (titolo vuoto) -> 400 automatico di [ApiController]
+POST {{baseUrl}}/api/tasks
+Content-Type: application/json
+
+{
+  "title": "",
+  "priority": "Low",
+  "projectId": 1
+}
+
+### Aggiorna tutto il task (PUT)
+PUT {{baseUrl}}/api/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Study DI lifetimes (updated)",
+  "description": null,
+  "status": "Done",
+  "priority": "High",
+  "dueDate": null
+}
+
+### Sposta un task di colonna (PATCH)
+PATCH {{baseUrl}}/api/tasks/2/status
+Content-Type: application/json
+
+{
+  "status": "Done"
+}
+
+### Elimina un task -> 204 No Content
+DELETE {{baseUrl}}/api/tasks/3

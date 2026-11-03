@@ -1,0 +1,57 @@
+# Avvia tutto lo stack con:   docker compose up -d --build
+#   - db   -> PostgreSQL           (localhost:5432)
+#   - api  -> ASP.NET Core Web API (http://localhost:5080, UI delle API su /scalar)
+#   - web  -> React servito da nginx (http://localhost:5173)
+#
+# Comandi utili:
+#   docker compose ps                 stato dei container
+#   docker compose logs -f api        log del backend (con le query SQL generate da EF Core)
+#   docker compose down               ferma tutto (i dati restano nel volume)
+#   docker compose down -v            ferma tutto e CANCELLA il database (riparte con i dati di esempio)
+
+services:
+  db:
+    image: postgres:17
+    container_name: taskmanager-db
+    environment:
+      POSTGRES_DB: taskmanager
+      POSTGRES_USER: taskmanager
+      POSTGRES_PASSWORD: taskmanager   # solo per sviluppo locale!
+    ports:
+      - "5432:5432"                    # esposto anche fuori, per pgAdmin / DBeaver / dotnet run in locale
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # i dati sopravvivono a "docker compose down"
+    healthcheck:                       # "pronto" solo quando Postgres accetta connessioni
+      test: ["CMD-SHELL", "pg_isready -U taskmanager -d taskmanager"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend/TaskManager.Api
+    container_name: taskmanager-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development   # abilita /scalar e /openapi
+      # Sovrascrive "ConnectionStrings:Default" di appsettings.json ("__" = ":").
+      # Dentro la rete di Docker il database si raggiunge col NOME DEL SERVIZIO ("db"), non con localhost.
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=taskmanager;Username=taskmanager;Password=taskmanager"
+    ports:
+      - "5080:8080"                    # host:container (le immagini .NET ascoltano sulla 8080)
+    depends_on:
+      db:
+        condition: service_healthy     # aspetta che Postgres sia davvero pronto, non solo avviato
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # Il codice React gira nel BROWSER, non dentro Docker: quindi l'API si chiama via localhost.
+        VITE_API_URL: http://localhost:5080
+    container_name: taskmanager-web
+    ports:
+      - "5173:80"                      # stessa porta di "npm run dev", così la policy CORS resta valida
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

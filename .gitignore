@@ -1,0 +1,21 @@
+# .NET
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+.vs/
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Personal study notes (not part of the published project)
+STUDY.md
+
+# Local environment overrides
+.env
