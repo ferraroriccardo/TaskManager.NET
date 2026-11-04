@@ -3,9 +3,9 @@ using TaskManager.Api.Models;
 
 namespace TaskManager.Api.Services;
 
-// INTERFACCIA: definisce COSA può fare il servizio, non COME.
-// Il controller dipende dall'interfaccia, non dalla classe concreta:
-// così nei test puoi passare un "mock" e in Program.cs scegli l'implementazione (Dependency Inversion).
+// INTERFACE: defines WHAT the service can do, not HOW.
+// The controller depends on the interface, not on the concrete class:
+// so in tests you can pass a "mock" and in Program.cs you choose the implementation (Dependency Inversion).
 public interface ITaskService
 {
     Task<List<TaskDto>> GetAllAsync(int? projectId, TaskItemStatus? status, CancellationToken ct = default);

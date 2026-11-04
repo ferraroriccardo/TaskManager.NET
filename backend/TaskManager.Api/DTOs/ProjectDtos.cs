@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TaskManager.Api.DTOs;
 
-// TaskCount non esiste nell'entità Project: è calcolato nella query (vedi ProjectService).
+// TaskCount doesn't exist on the Project entity: it's computed in the query (see ProjectService).
 public record ProjectDto(int Id, string Name, int TaskCount);
 
 public record CreateProjectDto(

@@ -6,13 +6,13 @@ using TaskManager.Api.Models;
 
 namespace TaskManager.Api.Services;
 
-// SERVICE LAYER: contiene la business logic. Non sa nulla di HTTP (niente status code qui):
-// riceve DTO, lavora con le entità tramite il DbContext, restituisce DTO.
+// SERVICE LAYER: contains the business logic. It knows nothing about HTTP (no status codes here):
+// it receives DTOs, works with entities through the DbContext, returns DTOs.
 public class TaskService : ITaskService
 {
     private readonly AppDbContext _db;
 
-    // Constructor injection: il container DI crea AppDbContext (Scoped) e lo passa qui.
+    // Constructor injection: the DI container creates AppDbContext (Scoped) and passes it here.
     public TaskService(AppDbContext db)
     {
         _db = db;
@@ -20,8 +20,8 @@ public class TaskService : ITaskService
 
     public async Task<List<TaskDto>> GetAllAsync(int? projectId, TaskItemStatus? status, CancellationToken ct = default)
     {
-        // IQueryable: la query NON viene ancora eseguita, la stiamo solo "componendo".
-        IQueryable<TaskItem> query = _db.Tasks.AsNoTracking(); // sola lettura -> niente change tracking, più veloce
+        // IQueryable: the query is NOT executed yet, we are just "composing" it.
+        IQueryable<TaskItem> query = _db.Tasks.AsNoTracking(); // read-only -> no change tracking, faster
 
         if (projectId.HasValue)
             query = query.Where(t => t.ProjectId == projectId.Value);
@@ -29,9 +29,9 @@ public class TaskService : ITaskService
         if (status.HasValue)
             query = query.Where(t => t.Status == status.Value);
 
-        // Projection con Select: EF genera UN'UNICA query SQL con JOIN su Projects
-        // e legge solo le colonne che servono. Evita il problema N+1.
-        // Viene eseguita qui, su ToListAsync().
+        // Projection with Select: EF generates A SINGLE SQL query with a JOIN on Projects
+        // and reads only the columns it needs. Avoids the N+1 problem.
+        // It is executed here, on ToListAsync().
         return await query
             .OrderByDescending(t => t.Priority)
             .ThenBy(t => t.CreatedAt)
@@ -45,7 +45,7 @@ public class TaskService : ITaskService
     {
         var task = await _db.Tasks
             .AsNoTracking()
-            .Include(t => t.Project)          // Eager loading: carica anche il progetto (JOIN)
+            .Include(t => t.Project)          // Eager loading: also loads the project (JOIN)
             .FirstOrDefaultAsync(t => t.Id == id, ct)
             ?? throw new NotFoundException($"Task {id} not found");
 
@@ -54,7 +54,7 @@ public class TaskService : ITaskService
 
     public async Task<TaskDto> CreateAsync(CreateTaskDto dto, CancellationToken ct = default)
     {
-        // Business rule: il progetto deve esistere.
+        // Business rule: the project must exist.
         var project = await _db.Projects.FindAsync(new object[] { dto.ProjectId }, ct)
             ?? throw new NotFoundException($"Project {dto.ProjectId} not found");
 
@@ -68,15 +68,15 @@ public class TaskService : ITaskService
             Project = project
         };
 
-        _db.Tasks.Add(task);              // stato "Added" nel change tracker (ancora nessuna query)
-        await _db.SaveChangesAsync(ct);   // ora parte l'INSERT; EF valorizza task.Id
+        _db.Tasks.Add(task);              // "Added" state in the change tracker (no query yet)
+        await _db.SaveChangesAsync(ct);   // now the INSERT runs; EF populates task.Id
 
         return ToDto(task);
     }
 
     public async Task<TaskDto> UpdateAsync(int id, UpdateTaskDto dto, CancellationToken ct = default)
     {
-        // Qui NON usiamo AsNoTracking: vogliamo che EF tracci l'entità per poterla modificare.
+        // Here we do NOT use AsNoTracking: we want EF to track the entity so we can modify it.
         var task = await _db.Tasks
             .Include(t => t.Project)
             .FirstOrDefaultAsync(t => t.Id == id, ct)
@@ -88,7 +88,7 @@ public class TaskService : ITaskService
         task.Priority = dto.Priority;
         task.DueDate = ToUtc(dto.DueDate);
 
-        // EF confronta i valori con quelli originali e genera un UPDATE solo dei campi cambiati.
+        // EF compares the values with the original ones and generates an UPDATE of only the changed fields.
         await _db.SaveChangesAsync(ct);
         return ToDto(task);
     }
@@ -114,12 +114,12 @@ public class TaskService : ITaskService
         await _db.SaveChangesAsync(ct);
     }
 
-    // PostgreSQL salva le date come "timestamp with time zone" e Npgsql accetta solo DateTime in UTC
-    // (altrimenti lancia un'eccezione). Normalizziamo qui ogni data che arriva dal client.
+    // PostgreSQL stores dates as "timestamp with time zone" and Npgsql only accepts DateTime in UTC
+    // (otherwise it throws an exception). Here we normalize every date coming from the client.
     private static DateTime? ToUtc(DateTime? date) => date?.ToUniversalTime();
 
-    // Mapping entità -> DTO. In progetti grandi si usa a volte AutoMapper/Mapster,
-    // ma il mapping manuale è più esplicito e facile da debuggare.
+    // Entity -> DTO mapping. In large projects AutoMapper/Mapster is sometimes used,
+    // but manual mapping is more explicit and easier to debug.
     private static TaskDto ToDto(TaskItem t) => new(
         t.Id, t.Title, t.Description, t.Status, t.Priority,
         t.DueDate, t.CreatedAt, t.ProjectId, t.Project.Name);

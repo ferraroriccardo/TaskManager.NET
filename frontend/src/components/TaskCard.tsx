@@ -25,7 +25,7 @@ export function TaskCard({ task, onMove, onDelete }: Props) {
         <p className="due">Due {new Date(task.dueDate).toLocaleDateString()}</p>
       )}
       <footer>
-        {/* Rendering condizionale: il pulsante esiste solo se c'è una colonna precedente/successiva */}
+        {/* Conditional rendering: the button exists only if there is a previous/next column */}
         {prev ? <button onClick={() => onMove(task, prev)}>← Back</button> : <span />}
         {next && <button onClick={() => onMove(task, next)}>Next →</button>}
       </footer>

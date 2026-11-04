@@ -3,6 +3,6 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
-  // Porta fissa: deve coincidere con "Cors:AllowedOrigins" in appsettings.json del backend
+  // Fixed port: must match "Cors:AllowedOrigins" in the backend's appsettings.json
   server: { port: 5173, strictPort: true },
 })

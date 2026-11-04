@@ -16,8 +16,8 @@ export function useProjects() {
     }
   }, [])
 
-  // Array di dipendenze [reload]: reload non cambia mai (useCallback con []),
-  // quindi l'effetto parte una sola volta, al primo render.
+  // Dependency array [reload]: reload never changes (useCallback with []),
+  // so the effect runs only once, on the first render.
   useEffect(() => {
     const controller = new AbortController()
     reload(controller.signal)

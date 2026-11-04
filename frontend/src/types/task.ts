@@ -1,8 +1,8 @@
-// Questi tipi sono lo "specchio" TypeScript dei DTO C# (backend/TaskManager.Api/DTOs).
-// Se nel backend cambi un DTO, devi aggiornare anche qui: TypeScript ti segnalerà
-// a compile-time ogni punto del frontend che si rompe.
+// These types are the TypeScript "mirror" of the C# DTOs (backend/TaskManager.Api/DTOs).
+// If you change a DTO in the backend, you must update it here too: TypeScript will flag
+// at compile time every place in the frontend that breaks.
 
-// Union type al posto dell'enum C#: il backend serializza gli enum come stringhe.
+// Union type instead of the C# enum: the backend serializes enums as strings.
 export type TaskStatus = 'Todo' | 'InProgress' | 'Done'
 export type TaskPriority = 'Low' | 'Medium' | 'High'
 
@@ -16,7 +16,7 @@ export interface Task {
   description: string | null
   status: TaskStatus
   priority: TaskPriority
-  dueDate: string | null // le date arrivano come stringhe ISO 8601 nel JSON
+  dueDate: string | null // dates arrive as ISO 8601 strings in the JSON
   createdAt: string
   projectId: number
   projectName: string
@@ -38,10 +38,10 @@ export interface Project {
   taskCount: number
 }
 
-// Formato degli errori restituiti da ASP.NET Core (ProblemDetails)
+// Format of the errors returned by ASP.NET Core (ProblemDetails)
 export interface ProblemDetails {
   title?: string
   status?: number
   detail?: string
-  errors?: Record<string, string[]> // presente negli errori di validazione (400)
+  errors?: Record<string, string[]> // present in validation errors (400)
 }

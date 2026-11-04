@@ -3,13 +3,13 @@ import { ProjectSidebar } from './components/ProjectSidebar'
 import { TaskBoard } from './components/TaskBoard'
 import { useProjects } from './hooks/useProjects'
 
-// Componente radice: tiene lo stato condiviso tra sidebar e board
-// ("lifting state up": lo stato sta nel primo antenato comune dei componenti che lo usano).
+// Root component: holds the state shared between sidebar and board
+// ("lifting state up": the state lives in the closest common ancestor of the components that use it).
 export default function App() {
   const { projects, error, reload, createProject, deleteProject } = useProjects()
   const [selectedId, setSelectedId] = useState<number | null>(null)
 
-  // Se non è selezionato nessun progetto (o quello selezionato è stato eliminato), usa il primo.
+  // If no project is selected (or the selected one was deleted), use the first one.
   const selected = projects.find((p) => p.id === selectedId) ?? projects[0] ?? null
 
   async function handleCreate(name: string) {

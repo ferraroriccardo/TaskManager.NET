@@ -1,15 +1,15 @@
-# Multi-stage build: si compila con l'immagine SDK (grande) e si esegue con quella runtime (piccola).
+# Multi-stage build: compile with the SDK image (large) and run with the runtime image (small).
 
 # ---- Stage 1: build ----
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Prima solo il .csproj + restore: Docker mette in cache questo layer,
-# quindi i pacchetti NuGet si riscaricano solo se cambiano le dipendenze.
+# First only the .csproj + restore: Docker caches this layer,
+# so NuGet packages are re-downloaded only when the dependencies change.
 COPY TaskManager.Api.csproj .
 RUN dotnet restore
 
-# Poi il resto del codice
+# Then the rest of the code
 COPY . .
 RUN dotnet publish -c Release -o /app --no-restore
 

@@ -17,9 +17,9 @@ public class ProjectService : IProjectService
 
     public async Task<List<ProjectDto>> GetAllAsync(CancellationToken ct = default)
     {
-        // p.Tasks.Count() dentro il Select diventa una subquery COUNT(*) in SQL:
-        // NON carica tutti i task in memoria. Confrontalo con la versione "sbagliata"
-        // descritta nella guida (N+1 / caricare tutto e contare in C#).
+        // p.Tasks.Count() inside the Select becomes a COUNT(*) subquery in SQL:
+        // it does NOT load all the tasks into memory. Compare it with the "wrong" version
+        // described in the guide (N+1 / loading everything and counting in C#).
         return await _db.Projects
             .AsNoTracking()
             .OrderBy(p => p.Name)
@@ -40,7 +40,7 @@ public class ProjectService : IProjectService
         var project = await _db.Projects.FindAsync(new object[] { id }, ct)
             ?? throw new NotFoundException($"Project {id} not found");
 
-        _db.Projects.Remove(project); // i task vengono eliminati in cascata (vedi AppDbContext)
+        _db.Projects.Remove(project); // the tasks are cascade-deleted (see AppDbContext)
         await _db.SaveChangesAsync(ct);
     }
 }

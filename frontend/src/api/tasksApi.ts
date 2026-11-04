@@ -1,7 +1,7 @@
 import type { CreateTaskRequest, Task, TaskStatus } from '../types/task'
 import { request } from './client'
 
-// Un metodo per ogni endpoint di TasksController.cs
+// One method per endpoint of TasksController.cs
 export const tasksApi = {
   getByProject: (projectId: number, signal?: AbortSignal) =>
     request<Task[]>(`/api/tasks?projectId=${projectId}`, { signal }),

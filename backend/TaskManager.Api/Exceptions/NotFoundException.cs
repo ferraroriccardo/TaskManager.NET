@@ -1,7 +1,7 @@
 namespace TaskManager.Api.Exceptions;
 
-// Eccezione "di dominio": i service la lanciano quando una risorsa non esiste.
-// Il GlobalExceptionHandler la trasforma in una risposta HTTP 404.
+// "Domain" exception: services throw it when a resource doesn't exist.
+// The GlobalExceptionHandler turns it into an HTTP 404 response.
 public class NotFoundException : Exception
 {
     public NotFoundException(string message) : base(message) { }

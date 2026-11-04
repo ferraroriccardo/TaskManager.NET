@@ -2,12 +2,12 @@ using TaskManager.Api.Models;
 
 namespace TaskManager.Api.Data;
 
-// Inserisce qualche dato di esempio al primo avvio, così la UI non è vuota.
+// Inserts some sample data on first startup, so the UI isn't empty.
 public static class DbSeeder
 {
     public static void Seed(AppDbContext db)
     {
-        if (db.Projects.Any()) return; // già popolato
+        if (db.Projects.Any()) return; // already populated
 
         var interview = new Project
         {
@@ -31,6 +31,6 @@ public static class DbSeeder
         };
 
         db.Projects.AddRange(interview, personal);
-        db.SaveChanges(); // un'unica transazione: INSERT dei progetti + INSERT dei task
+        db.SaveChanges(); // a single transaction: INSERT of the projects + INSERT of the tasks
     }
 }

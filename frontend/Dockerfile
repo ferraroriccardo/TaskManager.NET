@@ -1,15 +1,15 @@
-# Multi-stage build: Node compila React in file statici, nginx li serve.
+# Multi-stage build: Node compiles React into static files, nginx serves them.
 
 # ---- Stage 1: build ----
 FROM node:22-slim AS build
 WORKDIR /app
 
-# Dipendenze prima del codice, per sfruttare la cache di Docker
+# Dependencies before the code, to take advantage of Docker's cache
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-# Le variabili VITE_* vengono "cotte" nel bundle JavaScript al momento della build
+# VITE_* variables are "baked" into the JavaScript bundle at build time
 ARG VITE_API_URL=http://localhost:5080
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build

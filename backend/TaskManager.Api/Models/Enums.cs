@@ -1,6 +1,6 @@
 namespace TaskManager.Api.Models;
 
-// Le tre colonne della board Kanban.
+// The three columns of the Kanban board.
 public enum TaskItemStatus
 {
     Todo,

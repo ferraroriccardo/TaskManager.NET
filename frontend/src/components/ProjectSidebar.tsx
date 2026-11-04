@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import type { Project } from '../types/task'
 
-// Le "props" sono i parametri del componente: dati in ingresso + callback per comunicare verso l'alto.
-// I dati scendono (parent -> child), gli eventi salgono (child -> parent tramite callback).
+// "Props" are the component's parameters: input data + callbacks to communicate upwards.
+// Data flows down (parent -> child), events flow up (child -> parent via callbacks).
 interface Props {
   projects: Project[]
   selectedId: number | null
@@ -12,12 +12,12 @@ interface Props {
 }
 
 export function ProjectSidebar({ projects, selectedId, onSelect, onCreate, onDelete }: Props) {
-  // Stato LOCALE: interessa solo a questo componente (il testo nell'input).
-  // È un "controlled input": il valore mostrato viene sempre dallo stato React.
+  // LOCAL state: only this component cares about it (the text in the input).
+  // It's a "controlled input": the displayed value always comes from React state.
   const [name, setName] = useState('')
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault() // evita il refresh della pagina (comportamento di default dei form HTML)
+    e.preventDefault() // prevents the page refresh (default behavior of HTML forms)
     if (!name.trim()) return
     await onCreate(name.trim())
     setName('')
@@ -27,7 +27,7 @@ export function ProjectSidebar({ projects, selectedId, onSelect, onCreate, onDel
     <aside className="sidebar">
       <h2>Projects</h2>
       <ul>
-        {/* "key" aiuta React a capire quale elemento della lista è cambiato durante la reconciliation */}
+        {/* "key" helps React figure out which list item changed during reconciliation */}
         {projects.map((p) => (
           <li key={p.id} className={p.id === selectedId ? 'active' : ''}>
             <button className="project-name" onClick={() => onSelect(p.id)}>

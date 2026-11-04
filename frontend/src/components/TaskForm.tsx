@@ -23,7 +23,7 @@ export function TaskForm({ projectId, onCreate }: Props) {
         title,
         description: description || null,
         priority,
-        // <input type="date"> dà "2026-11-05": lo convertiamo in ISO 8601 per il backend
+        // <input type="date"> gives "2026-11-05": we convert it to ISO 8601 for the backend
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
         projectId,
       })
@@ -31,8 +31,8 @@ export function TaskForm({ projectId, onCreate }: Props) {
       setDescription('')
       setDueDate('')
     } catch (err) {
-      // Qui arrivano anche gli errori di validazione del backend (400) — prova a togliere
-      // l'attributo "required" dall'input e invia un titolo vuoto.
+      // Backend validation errors (400) end up here too — try removing
+      // the "required" attribute from the input and submit an empty title.
       setError(err instanceof Error ? err.message : 'Error')
     } finally {
       setSubmitting(false)

@@ -1,9 +1,9 @@
 import type { ProblemDetails } from '../types/task'
 
-// URL del backend, letto dal file .env (le variabili esposte da Vite devono iniziare con VITE_)
+// Backend URL, read from the .env file (variables exposed by Vite must start with VITE_)
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5080'
 
-// Errore "tipizzato" che conserva status code e messaggio del backend.
+// "Typed" error that keeps the backend's status code and message.
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) {
@@ -12,30 +12,30 @@ export class ApiError extends Error {
   }
 }
 
-// Wrapper generico attorno a fetch: un unico punto dove gestire
-// URL base, header JSON, parsing della risposta ed errori HTTP.
-// (Più avanti qui potresti aggiungere l'header "Authorization: Bearer <token>")
+// Generic wrapper around fetch: a single place to handle
+// base URL, JSON headers, response parsing and HTTP errors.
+// (Later on you could add the "Authorization: Bearer <token>" header here)
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options.headers },
   })
 
-  // fetch NON lancia eccezioni per 4xx/5xx: va controllato response.ok a mano.
+  // fetch does NOT throw for 4xx/5xx: response.ok must be checked manually.
   if (!response.ok) {
     let message = `HTTP ${response.status}`
     try {
       const problem = (await response.json()) as ProblemDetails
-      // Errori di validazione: { errors: { Title: ["The Title field is required."] } }
+      // Validation errors: { errors: { Title: ["The Title field is required."] } }
       const firstValidationError = problem.errors ? Object.values(problem.errors)[0]?.[0] : undefined
       message = firstValidationError ?? problem.detail ?? problem.title ?? message
     } catch {
-      // risposta senza body JSON
+      // response without a JSON body
     }
     throw new ApiError(response.status, message)
   }
 
-  // 204 No Content (es. DELETE): nessun body da leggere
+  // 204 No Content (e.g. DELETE): no body to read
   if (response.status === 204) return undefined as T
 
   return (await response.json()) as T

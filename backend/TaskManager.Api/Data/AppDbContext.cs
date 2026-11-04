@@ -3,26 +3,26 @@ using TaskManager.Api.Models;
 
 namespace TaskManager.Api.Data;
 
-// Il DbContext è il "ponte" tra C# e il database:
-//  - ogni DbSet<T> corrisponde a una tabella
-//  - tiene traccia delle modifiche agli oggetti (change tracking)
-//  - SaveChangesAsync() le traduce in INSERT/UPDATE/DELETE dentro una transazione (Unit of Work)
+// The DbContext is the "bridge" between C# and the database:
+//  - each DbSet<T> maps to a table
+//  - it keeps track of changes to objects (change tracking)
+//  - SaveChangesAsync() translates them into INSERT/UPDATE/DELETE inside a transaction (Unit of Work)
 public class AppDbContext : DbContext
 {
-    // Le opzioni (quale DB, quale connection string) arrivano da Program.cs tramite Dependency Injection.
+    // The options (which DB, which connection string) come from Program.cs via Dependency Injection.
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
 
-    // Fluent API: configurazione dello schema che non si può dedurre dalle convenzioni.
+    // Fluent API: schema configuration that can't be inferred from conventions.
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Project>(entity =>
         {
             entity.Property(p => p.Name)
                   .IsRequired()
-                  .HasMaxLength(100);         // -> NVARCHAR(100) NOT NULL su SQL Server
+                  .HasMaxLength(100);         // -> NVARCHAR(100) NOT NULL on SQL Server
         });
 
         modelBuilder.Entity<TaskItem>(entity =>
@@ -34,18 +34,18 @@ public class AppDbContext : DbContext
             entity.Property(t => t.Description)
                   .HasMaxLength(2000);
 
-            // Salva lo stato come testo ("Todo") invece che come numero (0): DB più leggibile.
+            // Stores the status as text ("Todo") instead of a number (0): a more readable DB.
             entity.Property(t => t.Status).HasConversion<string>();
-            // La priorità invece resta un intero (Low=0, Medium=1, High=2): così ORDER BY
-            // ordina per importanza. Come stringa ordinerebbe alfabeticamente (High < Low < Medium)!
+            // Priority instead stays an integer (Low=0, Medium=1, High=2): this way ORDER BY
+            // sorts by importance. As a string it would sort alphabetically (High < Low < Medium)!
 
-            // Relazione 1-N esplicita. Se elimini un progetto, si eliminano anche i suoi task.
+            // Explicit 1-N relationship. If you delete a project, its tasks are deleted too.
             entity.HasOne(t => t.Project)
                   .WithMany(p => p.Tasks)
                   .HasForeignKey(t => t.ProjectId)
                   .OnDelete(DeleteBehavior.Cascade);
 
-            // Indice: velocizza la query più frequente ("dammi i task del progetto X").
+            // Index: speeds up the most frequent query ("give me the tasks of project X").
             entity.HasIndex(t => t.ProjectId);
         });
     }

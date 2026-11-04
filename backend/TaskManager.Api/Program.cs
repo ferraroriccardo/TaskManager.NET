@@ -6,76 +6,76 @@ using TaskManager.Api.Middleware;
 using TaskManager.Api.Services;
 
 // =====================================================================
-// Program.cs = punto di ingresso. Ha due fasi:
-//   1) REGISTRAZIONE dei servizi nel container di Dependency Injection
-//   2) CONFIGURAZIONE della pipeline HTTP (la catena di middleware)
+// Program.cs = entry point. It has two phases:
+//   1) REGISTRATION of the services in the Dependency Injection container
+//   2) CONFIGURATION of the HTTP pipeline (the middleware chain)
 // =====================================================================
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------- 1) DEPENDENCY INJECTION ----------
 
-// Controllers + JSON: gli enum viaggiano come stringhe ("InProgress") invece che numeri (1).
+// Controllers + JSON: enums travel as strings ("InProgress") instead of numbers (1).
 builder.Services
     .AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// EF Core: registra AppDbContext come SCOPED (un'istanza per ogni richiesta HTTP).
-// La connection string si legge dalla configurazione: appsettings.json in locale,
-// variabile d'ambiente ConnectionStrings__Default dentro Docker (vedi docker-compose.yml).
-// Cambiare database = cambiare SOLO questa riga + il pacchetto NuGet (es. UseSqlServer).
+// EF Core: registers AppDbContext as SCOPED (one instance per HTTP request).
+// The connection string is read from configuration: appsettings.json locally,
+// the ConnectionStrings__Default environment variable inside Docker (see docker-compose.yml).
+// Changing database = changing ONLY this line + the NuGet package (e.g. UseSqlServer).
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// I nostri servizi: interfaccia -> implementazione, con lifetime Scoped
-// (stesso lifetime del DbContext che usano; un Singleton NON potrebbe dipendere da un DbContext Scoped).
+// Our services: interface -> implementation, with Scoped lifetime
+// (same lifetime as the DbContext they use; a Singleton could NOT depend on a Scoped DbContext).
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 
-// Gestione globale degli errori -> ProblemDetails
+// Global error handling -> ProblemDetails
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// CORS: il browser blocca le chiamate da http://localhost:5173 (React) a http://localhost:5080 (API)
-// perché sono "origin" diverse. Qui autorizziamo esplicitamente il frontend.
+// CORS: the browser blocks calls from http://localhost:5173 (React) to http://localhost:5080 (API)
+// because they are different "origins". Here we explicitly allow the frontend.
 const string FrontendCorsPolicy = "Frontend";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy => policy
         .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
-        .AllowAnyHeader()       //non in produzione
-        .AllowAnyMethod());     //non in produzione
+        .AllowAnyHeader()       //not in production
+        .AllowAnyMethod());     //not in production
 });
 
-// Documento OpenAPI (descrizione machine-readable delle API)
+// OpenAPI document (machine-readable description of the API)
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// ---------- Creazione DB + dati di esempio ----------
-// Creiamo uno "scope" manuale perché AppDbContext è Scoped e qui non siamo dentro una richiesta HTTP.
+// ---------- DB creation + sample data ----------
+// We create a manual "scope" because AppDbContext is Scoped and here we are not inside an HTTP request.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // EnsureCreated crea il DB e le tabelle se non esistono. Semplice per iniziare.
-    // STEP SUCCESSIVO (vedi guida): sostituirlo con le Migrations -> db.Database.Migrate();
+    // EnsureCreated creates the DB and the tables if they don't exist. Simple to get started.
+    // NEXT STEP (see guide): replace it with Migrations -> db.Database.Migrate();
     db.Database.EnsureCreated();
     DbSeeder.Seed(db);
 }
 
-// ---------- 2) PIPELINE HTTP (l'ordine conta!) ----------
-// Ogni richiesta attraversa i middleware dall'alto verso il basso, la risposta torna indietro al contrario.
+// ---------- 2) HTTP PIPELINE (order matters!) ----------
+// Each request goes through the middleware from top to bottom, the response travels back in reverse order.
 
-app.UseExceptionHandler();          // cattura le eccezioni dei middleware successivi
+app.UseExceptionHandler();          // catches exceptions from the following middleware
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();               // JSON su /openapi/v1.json
-    app.MapScalarApiReference();    // UI interattiva su /scalar (equivalente di Swagger UI)
+    app.MapOpenApi();               // JSON at /openapi/v1.json
+    app.MapScalarApiReference();    // interactive UI at /scalar (equivalent of Swagger UI)
 }
 
 app.UseCors(FrontendCorsPolicy);
 
-app.MapControllers();               // routing verso i controller
+app.MapControllers();               // routing to the controllers
 
 app.Run();

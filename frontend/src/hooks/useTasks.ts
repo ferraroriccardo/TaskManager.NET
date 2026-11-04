@@ -2,23 +2,23 @@ import { useCallback, useEffect, useState } from 'react'
 import { tasksApi } from '../api/tasksApi'
 import type { CreateTaskRequest, Task, TaskStatus } from '../types/task'
 
-// CUSTOM HOOK: incapsula stato + chiamate API dei task.
-// I componenti non sanno nulla di fetch: chiamano createTask(), moveTask()... e ricevono i dati.
+// CUSTOM HOOK: encapsulates the tasks' state + API calls.
+// Components know nothing about fetch: they call createTask(), moveTask()... and receive the data.
 export function useTasks(projectId: number | null) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // useEffect: "sincronizza" il componente con il server ogni volta che cambia projectId.
+  // useEffect: "synchronizes" the component with the server every time projectId changes.
   useEffect(() => {
     if (projectId === null) {
       setTasks([])
       return
     }
 
-    // AbortController: se l'utente cambia progetto prima che la risposta arrivi,
-    // annulliamo la richiesta vecchia. Evita la race condition in cui una risposta
-    // lenta del progetto A sovrascrive quella del progetto B.
+    // AbortController: if the user switches project before the response arrives,
+    // we cancel the old request. This avoids the race condition where a slow response
+    // for project A overwrites the one for project B.
     const controller = new AbortController()
     setLoading(true)
     setError(null)
@@ -27,35 +27,35 @@ export function useTasks(projectId: number | null) {
       .getByProject(projectId, controller.signal)
       .then(setTasks)
       .catch((err: unknown) => {
-        if (controller.signal.aborted) return // annullata da noi: non è un errore
+        if (controller.signal.aborted) return // cancelled by us: not an error
         setError(err instanceof Error ? err.message : 'Unknown error')
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false)
       })
 
-    // Cleanup: eseguita quando projectId cambia o il componente viene smontato.
+    // Cleanup: runs when projectId changes or the component is unmounted.
     return () => controller.abort()
   }, [projectId])
 
-  // useCallback: la funzione mantiene la stessa identità tra un render e l'altro
-  // (utile se la passi a componenti figli memoizzati).
+  // useCallback: the function keeps the same identity from one render to the next
+  // (useful if you pass it to memoized child components).
   const createTask = useCallback(async (data: CreateTaskRequest) => {
     const created = await tasksApi.create(data)
-    setTasks((prev) => [...prev, created]) // aggiornamento IMMUTABILE: nuovo array, mai push()
+    setTasks((prev) => [...prev, created]) // IMMUTABLE update: new array, never push()
   }, [])
 
-  // OPTIMISTIC UPDATE: aggiorno subito la UI, poi chiamo il server.
-  // Se il server fallisce, torno allo stato precedente (rollback).
+  // OPTIMISTIC UPDATE: update the UI immediately, then call the server.
+  // If the server fails, go back to the previous state (rollback).
   const moveTask = useCallback(async (task: Task, status: TaskStatus) => {
     const setStatus = (s: TaskStatus) =>
       setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: s } : t)))
 
-    setStatus(status) // la card si sposta subito
+    setStatus(status) // the card moves immediately
     try {
       await tasksApi.updateStatus(task.id, status)
     } catch (err) {
-      setStatus(task.status) // rollback allo stato originale
+      setStatus(task.status) // rollback to the original status
       setError(err instanceof Error ? err.message : 'Could not move task')
     }
   }, [])

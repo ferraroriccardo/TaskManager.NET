@@ -4,8 +4,8 @@ using TaskManager.Api.Exceptions;
 
 namespace TaskManager.Api.Middleware;
 
-// Gestione centralizzata degli errori: invece di mettere try/catch in ogni controller,
-// ogni eccezione non gestita arriva qui e viene convertita in una risposta JSON standard
+// Centralized error handling: instead of putting try/catch in every controller,
+// every unhandled exception ends up here and is converted into a standard JSON response
 // ("ProblemDetails", RFC 9457).
 public class GlobalExceptionHandler : IExceptionHandler
 {
@@ -32,12 +32,12 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             Status = status,
             Title = title,
-            // Per un 500 non mostriamo il messaggio interno al client (potrebbe esporre dettagli).
+            // For a 500 we don't show the internal message to the client (it could expose details).
             Detail = status == StatusCodes.Status500InternalServerError ? null : exception.Message
         };
 
         httpContext.Response.StatusCode = status;
         await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken);
-        return true; // "l'ho gestita io"
+        return true; // "I handled it"
     }
 }

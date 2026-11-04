@@ -12,7 +12,7 @@ const COLUMN_TITLES: Record<TaskStatus, string> = {
 interface Props {
   projectId: number
   projectName: string
-  onTasksChanged: () => void // per aggiornare il contatore nella sidebar
+  onTasksChanged: () => void // to update the counter in the sidebar
 }
 
 export function TaskBoard({ projectId, projectName, onTasksChanged }: Props) {
@@ -38,8 +38,8 @@ export function TaskBoard({ projectId, projectName, onTasksChanged }: Props) {
 
       <div className="columns">
         {STATUSES.map((status) => {
-          // "Stato derivato": non salviamo le tre liste nello state, le calcoliamo a ogni render
-          // filtrando l'unica fonte di verità (tasks).
+          // "Derived state": we don't store the three lists in state, we compute them on every render
+          // by filtering the single source of truth (tasks).
           const columnTasks = tasks.filter((t) => t.status === status)
           return (
             <section key={status} className="column">

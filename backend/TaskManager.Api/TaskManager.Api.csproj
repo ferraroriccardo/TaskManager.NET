@@ -7,15 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- EF Core: l'ORM + il "provider" per PostgreSQL (Npgsql).
-         Per SQL Server useresti Microsoft.EntityFrameworkCore.SqlServer: il resto del codice non cambia. -->
+    <!-- EF Core: the ORM + the "provider" for PostgreSQL (Npgsql).
+         For SQL Server you would use Microsoft.EntityFrameworkCore.SqlServer: the rest of the code doesn't change. -->
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.*" />
-    <!-- Serve al comando "dotnet ef migrations add ..." (step successivo della guida) -->
+    <!-- Needed by the "dotnet ef migrations add ..." command (next step of the guide) -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- Documentazione OpenAPI (ex "Swagger") + una UI per provare le API dal browser -->
+    <!-- OpenAPI documentation (formerly "Swagger") + a UI to try the API from the browser -->
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.*" />
   </ItemGroup>

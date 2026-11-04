@@ -3,15 +3,15 @@ using TaskManager.Api.Models;
 
 namespace TaskManager.Api.DTOs;
 
-// DTO = Data Transfer Object: la "forma" dei dati che viaggiano sulla rete.
-// Non esponiamo mai le entità direttamente, perché:
-//  1. sicurezza: un'entità può contenere campi che il client non deve vedere/modificare
-//  2. niente cicli JSON (TaskItem -> Project -> Tasks -> TaskItem -> ...)
-//  3. disaccoppiamento: cambiare il DB non rompe il contratto con il frontend
+// DTO = Data Transfer Object: the "shape" of the data travelling over the network.
+// We never expose entities directly, because:
+//  1. security: an entity may contain fields the client must not see/modify
+//  2. no JSON cycles (TaskItem -> Project -> Tasks -> TaskItem -> ...)
+//  3. decoupling: changing the DB doesn't break the contract with the frontend
 //
-// "record" = classe immutabile con uguaglianza per valore, perfetta per i DTO.
+// "record" = immutable class with value equality, perfect for DTOs.
 
-// OUTPUT: ciò che l'API restituisce a React
+// OUTPUT: what the API returns to React
 public record TaskDto(
     int Id,
     string Title,
@@ -23,10 +23,10 @@ public record TaskDto(
     int ProjectId,
     string ProjectName);
 
-// INPUT: ciò che React invia per creare un task.
-// Gli attributi [Required], [StringLength]... vengono controllati automaticamente
-// grazie a [ApiController]: se non sono rispettati, l'API risponde 400 Bad Request
-// senza nemmeno entrare nel metodo del controller.
+// INPUT: what React sends to create a task.
+// The [Required], [StringLength]... attributes are checked automatically
+// thanks to [ApiController]: if they aren't satisfied, the API responds with 400 Bad Request
+// without even entering the controller method.
 public record CreateTaskDto(
     [Required, StringLength(200, MinimumLength = 1)] string Title,
     [StringLength(2000)] string? Description,
@@ -41,5 +41,5 @@ public record UpdateTaskDto(
     TaskPriority Priority,
     DateTime? DueDate);
 
-// Usato per spostare un task tra le colonne della board (PATCH: modifica parziale).
+// Used to move a task between the board columns (PATCH: partial update).
 public record UpdateTaskStatusDto(TaskItemStatus Status);

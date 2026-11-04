@@ -1,12 +1,12 @@
-### File di richieste HTTP: in Visual Studio / VS Code (estensione "REST Client")
-### clicca "Send Request" sopra ogni richiesta per provarla.
+### HTTP requests file: in Visual Studio / VS Code ("REST Client" extension)
+### click "Send Request" above each request to try it.
 
 @baseUrl = http://localhost:5080
 
-### Tutti i progetti (con conteggio task)
+### All projects (with task count)
 GET {{baseUrl}}/api/projects
 
-### Crea un progetto
+### Create a project
 POST {{baseUrl}}/api/projects
 Content-Type: application/json
 
@@ -14,19 +14,19 @@ Content-Type: application/json
   "name": "Thesis"
 }
 
-### Tutti i task di un progetto
+### All tasks of a project
 GET {{baseUrl}}/api/tasks?projectId=1
 
-### Solo i task "InProgress"
+### Only "InProgress" tasks
 GET {{baseUrl}}/api/tasks?status=InProgress
 
-### Un task specifico
+### A specific task
 GET {{baseUrl}}/api/tasks/1
 
-### Task inesistente -> 404 ProblemDetails (GlobalExceptionHandler)
+### Non-existent task -> 404 ProblemDetails (GlobalExceptionHandler)
 GET {{baseUrl}}/api/tasks/9999
 
-### Crea un task -> 201 Created
+### Create a task -> 201 Created
 POST {{baseUrl}}/api/tasks
 Content-Type: application/json
 
@@ -38,7 +38,7 @@ Content-Type: application/json
   "projectId": 1
 }
 
-### Task non valido (titolo vuoto) -> 400 automatico di [ApiController]
+### Invalid task (empty title) -> automatic 400 from [ApiController]
 POST {{baseUrl}}/api/tasks
 Content-Type: application/json
 
@@ -48,7 +48,7 @@ Content-Type: application/json
   "projectId": 1
 }
 
-### Aggiorna tutto il task (PUT)
+### Update the whole task (PUT)
 PUT {{baseUrl}}/api/tasks/1
 Content-Type: application/json
 
@@ -60,7 +60,7 @@ Content-Type: application/json
   "dueDate": null
 }
 
-### Sposta un task di colonna (PATCH)
+### Move a task to another column (PATCH)
 PATCH {{baseUrl}}/api/tasks/2/status
 Content-Type: application/json
 
@@ -68,5 +68,5 @@ Content-Type: application/json
   "status": "Done"
 }
 
-### Elimina un task -> 204 No Content
+### Delete a task -> 204 No Content
 DELETE {{baseUrl}}/api/tasks/3

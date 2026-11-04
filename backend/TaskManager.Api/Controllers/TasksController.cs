@@ -5,14 +5,14 @@ using TaskManager.Api.Services;
 
 namespace TaskManager.Api.Controllers;
 
-// CONTROLLER: il livello HTTP. Il suo unico compito è:
-//  1. ricevere la richiesta (routing + model binding JSON -> DTO)
-//  2. delegare al service
-//  3. tradurre il risultato in uno status code HTTP
-// Niente business logic e niente accesso diretto al DbContext qui ("thin controller").
+// CONTROLLER: the HTTP layer. Its only job is to:
+//  1. receive the request (routing + JSON -> DTO model binding)
+//  2. delegate to the service
+//  3. translate the result into an HTTP status code
+// No business logic and no direct DbContext access here ("thin controller").
 //
-// [ApiController] attiva: validazione automatica dei DTO (400 se non validi),
-// binding automatico del body JSON, risposte di errore in formato ProblemDetails.
+// [ApiController] enables: automatic DTO validation (400 if invalid),
+// automatic JSON body binding, error responses in ProblemDetails format.
 [ApiController]
 [Route("api/tasks")]
 public class TasksController : ControllerBase
@@ -29,7 +29,7 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<List<TaskDto>>> GetAll(
         [FromQuery] int? projectId, [FromQuery] TaskItemStatus? status, CancellationToken ct)
     {
-        // CancellationToken: se il client chiude la connessione, la query al DB viene annullata.
+        // CancellationToken: if the client closes the connection, the DB query is cancelled.
         return Ok(await _taskService.GetAllAsync(projectId, status, ct));
     }
 
@@ -37,7 +37,7 @@ public class TasksController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<TaskDto>> GetById(int id, CancellationToken ct)
     {
-        // Se il task non esiste, il service lancia NotFoundException -> GlobalExceptionHandler -> 404
+        // If the task doesn't exist, the service throws NotFoundException -> GlobalExceptionHandler -> 404
         return Ok(await _taskService.GetByIdAsync(id, ct));
     }
 
@@ -46,18 +46,18 @@ public class TasksController : ControllerBase
     public async Task<ActionResult<TaskDto>> Create(CreateTaskDto dto, CancellationToken ct)
     {
         var created = await _taskService.CreateAsync(dto, ct);
-        // 201 Created + header "Location: /api/tasks/{id}" (convenzione REST)
+        // 201 Created + header "Location: /api/tasks/{id}" (REST convention)
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    // PUT /api/tasks/5  -> sostituisce tutti i campi modificabili
+    // PUT /api/tasks/5  -> replaces all editable fields
     [HttpPut("{id:int}")]
     public async Task<ActionResult<TaskDto>> Update(int id, UpdateTaskDto dto, CancellationToken ct)
     {
         return Ok(await _taskService.UpdateAsync(id, dto, ct));
     }
 
-    // PATCH /api/tasks/5/status  -> modifica parziale: solo lo stato (spostamento sulla board)
+    // PATCH /api/tasks/5/status  -> partial update: status only (moving on the board)
     [HttpPatch("{id:int}/status")]
     public async Task<ActionResult<TaskDto>> UpdateStatus(int id, UpdateTaskStatusDto dto, CancellationToken ct)
     {
@@ -69,6 +69,6 @@ public class TasksController : ControllerBase
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
         await _taskService.DeleteAsync(id, ct);
-        return NoContent(); // 204: fatto, niente da restituire
+        return NoContent(); // 204: done, nothing to return
     }
 }
